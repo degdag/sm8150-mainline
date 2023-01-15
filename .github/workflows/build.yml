@@ -1,0 +1,43 @@
+name: build kernel
+
+on:
+  push:
+    branches: [ "vayu-6.0-rc1" ]
+  pull_request:
+    branches: [ "vayu-6.0-rc1" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+#     - name: updating apt
+#       run: sudo apt update
+      
+#     - name: installing essentials/>/.,./
+#       run: sudo apt install -y gcc g++ build-essential flex bison libssl-dev libelf-dev git fakeroot ncurses-dev xz-utils
+
+
+    - name: Check out repository code
+      uses: actions/checkout@v3
+      with:
+        set-safe-directory: ''
+      
+    - name: Checkout zipper
+      uses: actions/checkout@v3
+      with:
+        repository: lemniskett/AnyKernel3
+        path: zipper
+        
+    - name: "Android kernel build"                    # Build kernel with lemniskett/android-kernel-actions.
+      uses: lemniskett/android-kernel-actions@master
+      with:
+        arch: arm64                                   # Specify arch
+        compiler: gcc/9                               # Specify toolchain to use
+        defconfig: vayu_defconfig                     # Specify defconfig to use
+        image: Image.gz-dtb 
+      
+    - name: Release build
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: ${{ steps.build.outputs.outfile }}
+        token: ${{ secrets.GITHUB_TOKEN }}
